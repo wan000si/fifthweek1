@@ -13,21 +13,28 @@ public class Receipt {
     private BigDecimal tax;
 
     public double CalculateGrandTotal(List<Product> products, List<OrderItem> items) {
-        BigDecimal subTotal = calculateSubtotal(products, items);
 
-        for (Product product : products) {
-            OrderItem curItem = findOrderItemByProduct(items, product);
+        return calculateSubtotal(products, items)
+                .add(calculateSubtotal(products, items).multiply(tax))
+                .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 
-            BigDecimal reducedPrice = product.getPrice()
-                    .multiply(product.getDiscountRate())
-                    .multiply(new BigDecimal(curItem.getCount()));
-
-            subTotal = subTotal.subtract(reducedPrice);
-        }
-        BigDecimal taxTotal = subTotal.multiply(tax);
-        BigDecimal grandTotal = subTotal.add(taxTotal);
-
-        return grandTotal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+//
+//        BigDecimal subTotal = calculateSubtotal(products, items);
+//
+//        for (Product product : products) {
+//            OrderItem curItem = findOrderItemByProduct(items, product);
+//
+//            BigDecimal reducedPrice = product.getPrice()
+//                    .multiply(product.getDiscountRate())
+//                    .multiply(new BigDecimal(curItem.getCount()));
+//
+//            subTotal = subTotal.subtract(reducedPrice);
+//        }
+//
+//        BigDecimal taxTotal = subTotal.multiply(tax);
+//        BigDecimal grandTotal = subTotal.add(taxTotal);
+//
+//        return grandTotal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
 
@@ -47,7 +54,10 @@ public class Receipt {
         for (Product product : products) {
             OrderItem item = findOrderItemByProduct(items, product);
             BigDecimal itemTotal = product.getPrice().multiply(new BigDecimal(item.getCount()));
-            subTotal = subTotal.add(itemTotal);
+            BigDecimal reducePrice = product.getPrice()
+                    .multiply(product.getDiscountRate())
+                    .multiply(new BigDecimal(item.getCount()));
+            subTotal = subTotal.add(itemTotal).subtract(reducePrice);
         }
         return subTotal;
     }
